@@ -45,7 +45,7 @@ export default function ImagePicker({ name, label }) {
 
       <div className={classes.controls}>
         <div className={classes.preview}>
-          {pickedImage ? (
+          {typeof pickedImage === "string" && pickedImage.length > 0 ? (
             <Image
               src={pickedImage}
               alt="The food image selected by the user"

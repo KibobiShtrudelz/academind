@@ -7,7 +7,7 @@ export default function MealsErrorPage() {
     <main className="error">
       <h1>Error occurred!</h1>
 
-      <p>Error fetching meals. Please go home hungry!</p>
+      <p>Failed to create meal. Go home hungry!</p>
     </main>
   );
 }

@@ -1,4 +1,8 @@
-import ImagePicker from "../../../components/meals/image-picker/image-picker.js";
+import ImagePicker from "@/components/meals/image-picker/image-picker.js";
+
+import { shareMeal } from "@/lib/actions.js";
+
+import MealsFormSubmit from "@/components/meals/meals-form-submit.js";
 
 import classes from "./page.module.css";
 
@@ -14,7 +18,8 @@ export default function ShareMealPage() {
       </header>
 
       <main className={classes.main}>
-        <form className={classes.form}>
+        {/* Тъй като shareMeal е сървърна функция трябва да я назначин на "action" атрибута на формата! Въпреки, че е сървърна функция мога да я ползвам в клиентски компонент така, импортната от друг файл! */}
+        <form className={classes.form} action={shareMeal}>
           <div className={classes.row}>
             <p>
               <label htmlFor="name">Your name</label>
@@ -41,16 +46,13 @@ export default function ShareMealPage() {
               name="instructions"
               rows="10"
               required
-            ></textarea>
+            />
           </p>
 
-          <ImagePicker
-            name="image"
-            // label="Chose an image"
-          />
+          <ImagePicker name="image" label="Chose an image" />
 
           <p className={classes.actions}>
-            <button type="submit">Share Meal</button>
+            <MealsFormSubmit />
           </p>
         </form>
       </main>
