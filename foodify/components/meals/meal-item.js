@@ -8,7 +8,7 @@ export default function MealItem({ slug, title, image, summary, creator }) {
     <article className={classes.meal}>
       <header>
         <div className={classes.image}>
-          {/* fill може да се ползва, когато не знаем предварително width & height на снимката */}
+          {/* fill атрибута се ползва, когато не знаем предварително width & height на снимката */}
           <Image src={image} alt={title} fill />{" "}
         </div>
 
