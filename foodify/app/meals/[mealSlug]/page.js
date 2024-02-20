@@ -5,6 +5,22 @@ import { getMeal } from "@/lib/meals";
 
 import classes from "./page.module.css";
 
+// С generateMetadata създаваме динамични метаданни, защото Next подава данните от страницата към тази функция.
+export async function generateMetadata({ params }) {
+  const meal = await getMeal(params.mealSlug);
+
+  if (!meal) {
+    // notFound() е функция от Next, която връща най-близката Error или 404 страница
+    // Ползваме я тук, защото Next минава и генерира първо метаданните и ако няма такава рецепта гърми с грешка вместо да ни прати към 404.
+    notFound();
+  }
+
+  return {
+    title: meal.title,
+    description: meal.summary,
+  };
+}
+
 export default async function MealSlugPage({ params }) {
   const meal = await getMeal(params.mealSlug);
 

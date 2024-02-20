@@ -1,3 +1,7 @@
+"use client";
+
+import * as ReactDOM from "react-dom";
+
 import ImagePicker from "@/components/meals/image-picker/image-picker.js";
 
 import { shareMeal } from "@/lib/actions.js";
@@ -6,7 +10,13 @@ import MealsFormSubmit from "@/components/meals/meals-form-submit.js";
 
 import classes from "./page.module.css";
 
+const { useFormState } = ReactDOM;
+
 export default function ShareMealPage() {
+  const [state, formAction] = useFormState(shareMeal, {
+    message: null,
+  }); // Служи за да се вземат стойностите на полетата от формата, която бива изпълнена със СЪРВЪР ЕКШЪН!
+
   return (
     <>
       <header className={classes.header}>
@@ -18,8 +28,11 @@ export default function ShareMealPage() {
       </header>
 
       <main className={classes.main}>
-        {/* Тъй като shareMeal е сървърна функция трябва да я назначин на "action" атрибута на формата! Въпреки, че е сървърна функция мога да я ползвам в клиентски компонент така, импортната от друг файл! */}
-        <form className={classes.form} action={shareMeal}>
+        <form
+          className={classes.form}
+          action={formAction} // Назначаваме formAction тук, защото вече подаваме shareMeal на useFormState. useFormState работи с формите (менажира стейта на формата), които ползват server action-и!
+          // action={shareMeal} // Тъй като shareMeal е сървърна функция трябва да я назначин на "action" атрибута на формата! Въпреки, че е сървърна функция мога да я ползвам в клиентски компонент така, импортната от друг файл!
+        >
           <div className={classes.row}>
             <p>
               <label htmlFor="name">Your name</label>
@@ -50,6 +63,8 @@ export default function ShareMealPage() {
           </p>
 
           <ImagePicker name="image" label="Chose an image" />
+
+          {state.message && <p className={classes.error}>{state.message}</p>}
 
           <p className={classes.actions}>
             <MealsFormSubmit />

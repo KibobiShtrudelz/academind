@@ -3,8 +3,10 @@
 import { redirect } from "next/navigation";
 
 import { saveMeal } from "./meals";
+import { revalidatePath } from "next/cache";
 
-export async function shareMeal(formData) {
+// useFormState подава два аргумента, затова и shareMeal трябва да ги приема!
+export async function shareMeal(prevState, formData) {
   // "use server";
   // "use server" директивата създава, т.нар. server action. Това е функция, която се изпълнява САМО на сървъра!
   // И тъй като това е сървърна функция трябва да е асинхронна.
@@ -29,10 +31,15 @@ export async function shareMeal(formData) {
     !meal.image ||
     meal.image.size === 0
   ) {
-    throw new Error("Invalid input!");
+    // throw new Error("Invalid input!");
+    return {
+      message: "Invalid input!",
+    };
   }
 
   await saveMeal(meal);
+
+  revalidatePath("/meals", "layout"); // Ревалидира страницата и по този начин кешира нова с последните данни. Вторият аргумент по подразбиране е "page", но ако страницата има нестнати страници трябва да ползваме "layout", за да се ревалидира всичко надолу!
 
   redirect("/meals");
 }
