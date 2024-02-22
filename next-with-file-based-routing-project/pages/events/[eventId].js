@@ -1,19 +1,13 @@
 import { Fragment } from "react";
 
-import { useRouter } from "next/router";
-
 import ErrorAlert from "../../components/ui/error-alert/error-alert";
 import EventSummary from "../../components/event-detail/event-summary";
 import EventContent from "../../components/event-detail/event-content";
 import EventLogistics from "../../components/event-detail/event-logistics";
 
-import { getEventById } from "../../dummy-data";
+import { getEventById } from "../../helpers/api-util";
 
-export default function EventDetailPage() {
-  const router = useRouter();
-
-  const event = getEventById(router.query.eventId);
-
+export default function EventDetailPage({ event }) {
   if (!event) {
     return (
       <ErrorAlert>
@@ -38,4 +32,15 @@ export default function EventDetailPage() {
       </EventContent>
     </Fragment>
   );
+}
+
+export async function getStaticProps({ params }) {
+  const eventId = params.eventId;
+
+  const event = await getEventById(eventId);
+
+  return {
+    props: { event },
+    revalidate: 30,
+  };
 }
