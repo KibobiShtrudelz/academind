@@ -1,38 +1,57 @@
 import { useState, useEffect } from "react";
 
-export default function LastSalesPage() {
-  const [sales, setSales] = useState();
-  const [isLoading, setIsLoading] = useState(false);
+import useSWR from "swr";
+
+export default function LastSalesPage(props) {
+  const [sales, setSales] = useState(props.sales);
+
+  const { data, error, isLoading } = useSWR(
+    "https://nextjs-course-c1612-default-rtdb.europe-west1.firebasedatabase.app/sales.json",
+    async (url) => {
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log("in useSWR data", data);
+
+      const transformedSales = [];
+
+      for (const key in data) {
+        transformedSales.push({
+          id: key,
+          volume: data[key].volume,
+          username: data[key].username,
+        });
+      }
+
+      setSales(transformedSales);
+    }
+  );
 
   useEffect(() => {
-    setIsLoading(true);
+    if (data) {
+      const transformedSales = [];
 
-    fetch(
-      "https://nextjs-course-c1612-default-rtdb.europe-west1.firebasedatabase.app/sales.json"
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        const transformedSales = [];
+      for (const key in data) {
+        transformedSales.push({
+          id: key,
+          volume: data[key].volume,
+          username: data[key].username,
+        });
+      }
 
-        for (const key in data) {
-          transformedSales.push({
-            id: key,
-            username: data[key].username,
-            volume: data[key].volume,
-          });
-        }
+      setSales(transformedSales);
+    }
+  }, [data]);
 
-        setSales(transformedSales);
-        setIsLoading(false);
-      });
-  }, []);
+  if (error) {
+    return <p>Failed to load.</p>;
+  }
 
   if (isLoading) {
     return <p>Loading...</p>;
   }
 
-  if (!sales) {
-    return <p>No data yet</p>;
+  if (!sales || sales.length === 0) {
+    return <p>No sales data yet</p>;
   }
 
   return (
@@ -40,7 +59,7 @@ export default function LastSalesPage() {
       <h1>Last Sales</h1>
 
       <ul>
-        {sales.map((sale) => (
+        {sales?.map((sale) => (
           <li key={sale.id}>
             {sale.username} - ${sale.volume}
           </li>
@@ -48,4 +67,29 @@ export default function LastSalesPage() {
       </ul>
     </div>
   );
+}
+
+export async function getStaticProps() {
+  const response = await fetch(
+    "https://nextjs-course-c1612-default-rtdb.europe-west1.firebasedatabase.app/sales.json"
+  );
+  const data = response.json();
+  console.log("data", data);
+
+  const transformedSales = [];
+
+  for (const key in data) {
+    transformedSales.push({
+      id: key,
+      volume: data[key].volume,
+      username: data[key].username,
+    });
+  }
+
+  return {
+    props: {
+      sales: transformedSales,
+    },
+    revalidate: 10,
+  };
 }
