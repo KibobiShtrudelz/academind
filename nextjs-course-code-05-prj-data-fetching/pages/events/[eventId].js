@@ -1,12 +1,13 @@
-import { Fragment } from 'react';
+import Head from "next/head";
 
-import { getEventById, getFeaturedEvents } from '../../helpers/api-util';
-import EventSummary from '../../components/event-detail/event-summary';
-import EventLogistics from '../../components/event-detail/event-logistics';
-import EventContent from '../../components/event-detail/event-content';
-import ErrorAlert from '../../components/ui/error-alert';
+import ErrorAlert from "../../components/ui/error-alert";
+import EventSummary from "../../components/event-detail/event-summary";
+import EventContent from "../../components/event-detail/event-content";
+import EventLogistics from "../../components/event-detail/event-logistics";
 
-function EventDetailPage(props) {
+import { getEventById, getFeaturedEvents } from "../../helpers/api-util";
+
+export default function EventDetailPage(props) {
   const event = props.selectedEvent;
 
   if (!event) {
@@ -18,18 +19,26 @@ function EventDetailPage(props) {
   }
 
   return (
-    <Fragment>
+    <>
+      <Head>
+        <title>{event.title}</title>
+
+        <meta name="description" content={event.description} />
+      </Head>
+
       <EventSummary title={event.title} />
+
       <EventLogistics
         date={event.date}
         address={event.location}
         image={event.image}
         imageAlt={event.title}
       />
+
       <EventContent>
         <p>{event.description}</p>
       </EventContent>
-    </Fragment>
+    </>
   );
 }
 
@@ -39,22 +48,18 @@ export async function getStaticProps(context) {
   const event = await getEventById(eventId);
 
   return {
-    props: {
-      selectedEvent: event
-    },
-    revalidate: 30
+    revalidate: 30,
+    props: { selectedEvent: event },
   };
 }
 
 export async function getStaticPaths() {
   const events = await getFeaturedEvents();
 
-  const paths = events.map(event => ({ params: { eventId: event.id } }));
+  const paths = events.map((event) => ({ params: { eventId: event.id } }));
 
   return {
     paths: paths,
-    fallback: 'blocking'
+    fallback: "blocking",
   };
 }
-
-export default EventDetailPage;
