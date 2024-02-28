@@ -1,11 +1,20 @@
-import { MongoClient } from "mongodb";
+import {
+  connectDB,
+  insertDocument,
+  getAllDocuments,
+} from "../../../helpers/db-util";
 
 export default async function handler(req, res) {
   const eventId = req.query.eventId;
 
-  const client = await MongoClient.connect(
-    "mongodb+srv://nextjs:Password101@nextjscluster.elpv2sz.mongodb.net/?retryWrites=true&w=majority&appName=NextJSCluster"
-  );
+  let client;
+
+  try {
+    client = await connectDB();
+  } catch (error) {
+    res.status(500).json({ message: "Connecting to the database failed!" });
+    return;
+  }
 
   if (req.method === "POST") {
     const { email, name, text } = req.body;
@@ -18,36 +27,46 @@ export default async function handler(req, res) {
       text?.trim() === ""
     ) {
       res.status(422).json({ message: "Invalid input." });
+
       return;
     }
 
-    const newComment = {
+    const comment = {
       email,
       name,
       text,
       eventId,
     };
 
-    const db = client.db("events");
+    let result;
 
-    const result = await db.collection("comments").insertOne({ newComment });
+    try {
+      result = await insertDocument(client, "events", "comments", {
+        comment,
+      });
 
-    console.log("result", result);
+      comment._id = result.insertedId;
 
-    newComment.id = result.insertedId;
-
-    if (req.method === "GET") {
-      const db = client.db();
-      const documents = await db
-        .collection("comments")
-        .find()
-        .sort({ _id: -1 })
-        .toArray();
-      console.log("documents", documents);
-
-      res.status(201).json({ message: "Added comment.", comment: documents });
+      res.status(201).json({ message: "Added comment.", comment });
+    } catch (error) {
+      res.status(500).json({ message: "Inserting comment failed." });
     }
 
-    client.close(); // close the connection
+    if (req.method === "GET") {
+      try {
+        const documents = await getAllDocuments(
+          client,
+          "events",
+          "comments",
+          { _id: -1 },
+          { eventId }
+        );
+        console.log("all documents >>>", documents);
+
+        res.status(200).json({ comments: documents });
+      } catch (error) {
+        res.status(500).json({ message: "Getting comments failed." });
+      }
+    }
   }
 }

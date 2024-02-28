@@ -1,27 +1,41 @@
-import { MongoClient } from "mongodb";
+import { connectDB, insertDocument } from "../../../helpers/db-util";
 
 export default async function handler({ body, method }, res) {
   if (method === "POST") {
     const { email } = body;
 
-    if (!email || !email.length || !email.includes("@")) {
-      return res
+    if (!email || !email.includes("@")) {
+      res
         .status(422)
         .json({ status: "error", message: "Invaliden email adresant!" });
+
+      return;
     }
 
-    const client = await MongoClient.connect(
-      "mongodb+srv://nextjs:Password101@nextjscluster.elpv2sz.mongodb.net/?retryWrites=true&w=majority&appName=NextJSCluster"
-    );
+    let client;
 
-    const db = client.db("newsletter");
+    try {
+      client = await connectDB();
+    } catch (error) {
+      res.status(500).json({
+        status: "error",
+        message: "Connecting to the database failed!",
+      });
 
-    await db.collection("emails").insertOne({ email });
+      return;
+    }
 
-    client.close(); // close the connection
+    try {
+      await insertDocument(client, "newsletter", "emails", { email });
+    } catch (error) {
+      res.status(500).json({
+        status: "error",
+        message: "Inserting data failed!",
+      });
+
+      return;
+    }
 
     res.status(201).json({ status: "success", message: "Signed up!" });
-  } else {
-    res.status(405).json({ status: "error", message: "Method Not Allowed" });
   }
 }
